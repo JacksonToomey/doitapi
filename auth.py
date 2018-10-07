@@ -1,3 +1,4 @@
+import json
 from inspect import Parameter
 from typing import Any, Callable, Optional
 
@@ -33,19 +34,13 @@ class AuthProvider:
 
         # data = resp.json()
         # return data
-        return {}
+        return {
+            'id': 'someid',
+            'email': 'some@email.com'
+        }
 
-    def get_login_response(self, user: dict) -> Response:
-        #  TODO:  real cookies
-        return Response(
-            HTTP_200,
-            content='{}',
-            headers={
-                'SET-COOKIE': Cookie('a', f'{user}b').encode(),
-                'set-cookie': Cookie('c', f'd').encode(),
-                'Content-Type': 'application/json',
-            },
-        )
+    def get_user_token(self, user: dict) -> str:
+        return 'some.fake.token'
 
 
 class AuthProviderComponent:
@@ -72,7 +67,12 @@ def login(login: Login, auth: AuthProvider) -> Response:
     if user is None:
         return Response(HTTP_401, content='{}')
 
-    return auth.get_login_response(user)
-    return {
-        'token': login.token,
-    }
+    token = auth.get_user_token(user)
+
+    return Response(
+        HTTP_200,
+        content=json.dumps({'token': token}),
+        headers={
+            'Content-Type': 'application/json',
+        },
+    )

@@ -21,7 +21,8 @@ def create_app(middleware=None, components=None, settings=None):
     if settings is None:
         settings = Settings({
             'database_engine_dsn': os.environ['SQLALCHEMY_URI'],
-            'identity_server': os.environ['IDENTITY_SERVER']
+            'identity_server': os.environ['IDENTITY_SERVER'],
+            'secret_key': os.environ['SECRET_KEY'],
         })
 
     if middleware is None:
@@ -42,7 +43,7 @@ def create_app(middleware=None, components=None, settings=None):
 
     app = App(
         routes=[
-            Route('/login', login, method='POST'),
+            Route('/login', login, method='POST', name='login'),
         ],
         middleware=middleware,
         components=components,
