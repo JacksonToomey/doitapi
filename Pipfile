@@ -14,6 +14,7 @@ gunicorn = "*"
 alembic = "*"
 sqlalchemy = "*"
 python-dotenv = "*"
+wsgicors = "*"
 
 [requires]
 python_version = "3.6"
