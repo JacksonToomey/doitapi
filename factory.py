@@ -18,6 +18,10 @@ from session import RequestSessionComponent
 load_dotenv()
 
 
+def foo() -> dict:
+    return {}
+
+
 def create_app(middleware=None, components=None, settings=None):
     if settings is None:
         settings = Settings({
@@ -45,6 +49,7 @@ def create_app(middleware=None, components=None, settings=None):
     app = App(
         routes=[
             Route('/login', login, method='POST', name='login'),
+            Route('/foo', foo),
         ],
         middleware=middleware,
         components=components,
