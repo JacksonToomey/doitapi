@@ -7,19 +7,17 @@ from molten.contrib.sqlalchemy import SQLAlchemyEngineComponent,\
     SQLAlchemySessionComponent
 from molten import App,\
     Route,\
+    Include,\
     ResponseRendererMiddleware,\
     Settings,\
     SettingsComponent
 
 from auth import auth_middleware, login, AuthProviderComponent
 from session import RequestSessionComponent
+from api import routes
 
 
 load_dotenv()
-
-
-def foo() -> dict:
-    return {}
 
 
 def create_app(middleware=None, components=None, settings=None):
@@ -49,7 +47,11 @@ def create_app(middleware=None, components=None, settings=None):
     app = App(
         routes=[
             Route('/login', login, method='POST', name='login'),
-            Route('/foo', foo),
+            Include(
+                '/api',
+                routes,
+                namespace='api',
+            )
         ],
         middleware=middleware,
         components=components,
