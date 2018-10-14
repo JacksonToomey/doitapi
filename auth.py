@@ -5,6 +5,7 @@ from typing import Any, Callable, Optional
 import requests
 from jose import jwt
 from molten import schema, Settings, HTTP_401, HTTP_403, Response, HTTP_200, Header
+from models import UserManager, User
 
 
 def auth_middleware(handler: Callable[..., Any]) -> Callable[..., Any]:
@@ -36,7 +37,6 @@ class AuthProvider:
         self.secret_key = secret_key
 
     def get_user_from_token(self, token: str) -> Optional[dict]:
-        # TODO:  actualy get identity
         url = f'{self.host}/.netlify/identity/user'
         resp = self.session.get(url, headers={
             'Authorization': f'Bearer {token}'
@@ -48,10 +48,10 @@ class AuthProvider:
         data = resp.json()
         return data
 
-    def get_user_token(self, user: dict) -> str:
+    def get_user_token(self, user: User) -> str:
         token = jwt.encode({
-            'id': user['id'],
-            'email': user['email'],
+            'id': user.id,
+            'email': user.email,
         }, self.secret_key, algorithm='HS256')
         return token
 
@@ -75,10 +75,12 @@ class Login:
 
 
 @exclude_auth
-def login(login: Login, auth: AuthProvider) -> Response:
+def login(login: Login, auth: AuthProvider, user_manager: UserManager) -> Response:
     user = auth.get_user_from_token(login.token)
     if user is None:
         return Response(HTTP_401, content='{}')
+
+    user = user_manager.get_user_from_external(user)
 
     token = auth.get_user_token(user)
 

@@ -1,7 +1,6 @@
 import os
 
 from dotenv import load_dotenv
-from wsgicors import CORS
 from molten.contrib.sqlalchemy import SQLAlchemyEngineComponent,\
     SQLAlchemyMiddleware,\
     SQLAlchemySessionComponent
@@ -12,9 +11,11 @@ from molten import App,\
     Settings,\
     SettingsComponent
 
-from auth import auth_middleware, login, AuthProviderComponent
-from session import RequestSessionComponent
 from api import routes
+from session import RequestSessionComponent
+from models import ManagerComponent,\
+    UserManager
+from auth import auth_middleware, login, AuthProviderComponent
 
 
 load_dotenv()
@@ -42,6 +43,7 @@ def create_app(middleware=None, components=None, settings=None):
             SQLAlchemySessionComponent(),
             RequestSessionComponent(),
             AuthProviderComponent(),
+            ManagerComponent(UserManager),
         ]
 
     app = App(
@@ -56,4 +58,4 @@ def create_app(middleware=None, components=None, settings=None):
         middleware=middleware,
         components=components,
     )
-    return CORS(app, headers='*', methods='*', origin='*')
+    return app
