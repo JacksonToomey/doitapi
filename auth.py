@@ -5,11 +5,11 @@ from typing import Any, Callable, Optional
 import requests
 from jose import jwt
 from molten import schema, Settings, HTTP_401, HTTP_403, Response, HTTP_200, Header
-from models import UserManager, User
+from models import UserProvider, User
 
 
 def auth_middleware(handler: Callable[..., Any]) -> Callable[..., Any]:
-    def middleware(authorization: Optional[Header]) -> Any:
+    def middleware(authorization: Optional[Header], auth_provider: AuthProvider, user_provider: UserProvider) -> Any:
         if getattr(handler, 'exclude_auth', False):
             return handler()
 
@@ -25,6 +25,7 @@ def auth_middleware(handler: Callable[..., Any]) -> Callable[..., Any]:
             return Response(HTTP_403, content='{}')
 
         # TODO: verify token
+        user_provider.load_user('9B883A9EAD2346D4B86DFD27293BBA54')
         return handler()
 
     return middleware
@@ -75,7 +76,7 @@ class Login:
 
 
 @exclude_auth
-def login(login: Login, auth: AuthProvider, user_manager: UserManager) -> Response:
+def login(login: Login, auth: AuthProvider, user_manager: UserProvider) -> Response:
     user = auth.get_user_from_token(login.token)
     if user is None:
         return Response(HTTP_401, content='{}')

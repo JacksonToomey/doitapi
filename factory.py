@@ -14,7 +14,9 @@ from molten import App,\
 from api import routes
 from session import RequestSessionComponent
 from models import ManagerComponent,\
-    UserManager
+    ChoreInstanceManager,\
+    ChoreDefinitionManager,\
+    UserProviderComponent
 from auth import auth_middleware, login, AuthProviderComponent
 
 
@@ -43,7 +45,9 @@ def create_app(middleware=None, components=None, settings=None):
             SQLAlchemySessionComponent(),
             RequestSessionComponent(),
             AuthProviderComponent(),
-            ManagerComponent(UserManager),
+            ManagerComponent(ChoreInstanceManager),
+            ManagerComponent(ChoreDefinitionManager),
+            UserProviderComponent(),
         ]
 
     app = App(
