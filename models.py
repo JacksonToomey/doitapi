@@ -147,8 +147,13 @@ class ChoreInstanceManager(Manager):
             .all()
 
     def complete_chore(self, chore_id: str):
-        instance = self.session.query(ChoreInstance).get(chore_id)
-        if instance is None:
+        user = self.user_provider.get_user()
+        try:
+            instance = self.session.query(ChoreInstance).get(chore_id)\
+                .filter_by(owner_id=user.id)\
+                .filter_by(id=chore_id)\
+                .one()
+        except NoResultFound:
             return
 
         chore_definition = self.session.query(ChoreDefinition).get(instance.chore_definition_id)
