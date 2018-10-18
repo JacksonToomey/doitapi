@@ -15,9 +15,9 @@ class Chore:
     id: Optional[str] = field(response_only=True)
     name: str
     details: str
-    frequency_type: FrequencyTypes = field(allow_coerce=True)
-    frequency_amount: int = field(minimum=1)
-    start_date: Union[str, pendulum.DateTime] = field(request_only=True, validator=PendulumValidator)
+    frequency_type: FrequencyTypes = field(allow_coerce=True, request_name='frequencyType', response_name='frequencyType')
+    frequency_amount: int = field(minimum=1, request_name='frequencyAmount', response_name='frequencyAmount')
+    start_date: Union[str, pendulum.DateTime] = field(request_only=True, validator=PendulumValidator, request_name='startDate', response_name='startDate')
 
 
 def get_upcoming(chore_instance_manager: ChoreInstanceManager, auth_provider: AuthProvider) -> list:

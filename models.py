@@ -149,7 +149,7 @@ class ChoreInstanceManager(Manager):
     def complete_chore(self, chore_id: str):
         user = self.user_provider.get_user()
         try:
-            instance = self.session.query(ChoreInstance).get(chore_id)\
+            instance = self.session.query(ChoreInstance)\
                 .filter_by(owner_id=user.id)\
                 .filter_by(id=chore_id)\
                 .one()
