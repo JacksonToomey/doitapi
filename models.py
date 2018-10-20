@@ -14,7 +14,8 @@ from sqlalchemy import types,\
     Integer,\
     CheckConstraint,\
     Enum,\
-    Boolean
+    Boolean,\
+    literal
 from molten.contrib.sqlalchemy import Session
 
 
@@ -57,6 +58,12 @@ class Base(Model):
         nullable=False,
         default=lambda: pendulum.now('UTC'),
         onupdate=lambda: pendulum.now('UTC'),
+    )
+    deleted = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default=literal('0'),
     )
 
 
@@ -141,6 +148,7 @@ class ChoreInstanceManager(Manager):
         user = self.user_provider.get_user()
         return self.session.query(ChoreInstance)\
             .filter_by(completed=False)\
+            .filter_by(deleted=False)\
             .filter_by(owner_id=user.id)\
             .filter(ChoreInstance.due_date <= pendulum.now('UTC').add(days=14))\
             .order_by(ChoreInstance.due_date.asc())\
@@ -152,6 +160,7 @@ class ChoreInstanceManager(Manager):
             instance = self.session.query(ChoreInstance)\
                 .filter_by(owner_id=user.id)\
                 .filter_by(id=chore_id)\
+                .filter_by(deleted=False)\
                 .one()
         except NoResultFound:
             return
@@ -187,6 +196,43 @@ class ChoreDefinitionManager(Manager):
         self.session.add(ChoreInstance.from_definition(chore_definition, chore_data.start_date))
         self.session.flush()
         return chore_definition
+
+    def get_chores(self) -> List[ChoreDefinition]:
+        user = self.user_provider.get_user()
+        return self.session.query(ChoreDefinition)\
+            .filter_by(owner_id=user.id)\
+            .filter_by(deleted=False)\
+            .all()
+
+    def get_chore(self, chore_id: str) -> ChoreDefinition:
+        user = self.user_provider.get_user()
+        try:
+            instance = self.session.query(ChoreDefinition)\
+                .filter_by(owner_id=user.id)\
+                .filter_by(id=chore_id)\
+                .filter_by(deleted=False)\
+                .one()
+        except NoResultFound:
+            return
+
+        return instance
+
+    def delete_chore(self, chore_id: str):
+        user = self.user_provider.get_user()
+        try:
+            instance = self.session.query(ChoreDefinition)\
+                .filter_by(owner_id=user.id)\
+                .filter_by(id=chore_id)\
+                .filter_by(deleted=False)\
+                .one()
+        except NoResultFound:
+            return
+
+        instance.deleted = True
+        self.session.add(instance)
+        self.session.query(ChoreInstance)\
+            .filter_by(chore_definition_id=instance.id)\
+            .update({'deleted': True}, synchronize_session=False)
 
 
 class ManagerComponent:
