@@ -3,7 +3,8 @@ from inspect import Parameter
 from typing import Any, Callable, Optional
 
 import requests
-from jose import jwt
+import pendulum
+from jose import jwt, JWTError
 from molten import schema, Settings, HTTP_401, HTTP_403, Response, HTTP_200, Header
 from models import UserProvider, User
 
@@ -21,7 +22,7 @@ def auth_middleware(handler: Callable[..., Any]) -> Callable[..., Any]:
 
         token = authorization.split(' ')[1]
 
-        if not token:
+        if not token or not auth_provider.verify_user_token(token):
             return Response(HTTP_403, content='{}')
 
         # TODO: verify token
@@ -53,8 +54,16 @@ class AuthProvider:
         token = jwt.encode({
             'id': user.id,
             'email': user.email,
+            'expiration': pendulum.now('UTC').add(hours=1).isoformat(),
         }, self.secret_key, algorithm='HS256')
         return token
+
+    def verify_user_token(self, token: str) -> bool:
+        try:
+            data = jwt.decode(token, self.secret_key, algorithms=['HS256'])
+            return pendulum.parse(data['expiration']) > pendulum.now('UTC')
+        except JWTError:
+            return False
 
 
 class AuthProviderComponent:
