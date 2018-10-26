@@ -28,6 +28,7 @@ class Chore:
         minimum=1,
         request_name='frequencyAmount',
         response_name='frequencyAmount',
+        allow_coerce=True,
     )
     start_date: Union[str, pendulum.DateTime] = field(
         request_only=True,
