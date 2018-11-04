@@ -25,8 +25,7 @@ def auth_middleware(handler: Callable[..., Any]) -> Callable[..., Any]:
         if not token or not auth_provider.verify_user_token(token):
             return Response(HTTP_403, content='{}')
 
-        # TODO: verify token
-        user_provider.load_user('9B883A9EAD2346D4B86DFD27293BBA54')
+        user_provider.load_user(auth_provider.verify_user_token(token))
         return handler()
 
     return middleware
@@ -61,9 +60,12 @@ class AuthProvider:
     def verify_user_token(self, token: str) -> bool:
         try:
             data = jwt.decode(token, self.secret_key, algorithms=['HS256'])
-            return pendulum.parse(data['expiration']) > pendulum.now('UTC')
+            if pendulum.parse(data['expiration']) > pendulum.now('UTC'):
+                return data['id']
         except JWTError:
-            return False
+            pass
+
+        return False
 
 
 class AuthProviderComponent:
